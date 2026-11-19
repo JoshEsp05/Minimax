@@ -101,4 +101,5 @@ Aplicar los conocimientos de Inteligencia Artificial mediante la implementación
 **Algoritmo:** Minimax con poda Alfa-Beta  
 **Lenguaje:** Java  
 **Interfaz gráfica:** JavaFX
+
 **Autor:** Joshua Emmanuel Esparza Chavez
