@@ -71,25 +71,45 @@ public class Tablero {
     // Comprobar si existe un ganador
     public char obtenerGanador() {
 
+        int[][] posiciones = obtenerLineaGanadora();
+
+        if (posiciones != null) {
+            return celdas[posiciones[0][0]][posiciones[0][1]];
+        }
+
+        return '-';
+    }
+
+    // Obtener las tres posiciones de la línea ganadora
+    public int[][] obtenerLineaGanadora() {
+
         // Filas
-        for (int i = 0; i < 3; i++) {
+        for (int fila = 0; fila < 3; fila++) {
 
-            if (celdas[i][0] != '-' &&
-                celdas[i][0] == celdas[i][1] &&
-                celdas[i][1] == celdas[i][2]) {
+            if (celdas[fila][0] != '-' &&
+                celdas[fila][0] == celdas[fila][1] &&
+                celdas[fila][1] == celdas[fila][2]) {
 
-                return celdas[i][0];
+                return new int[][]{
+                    {fila, 0},
+                    {fila, 1},
+                    {fila, 2}
+                };
             }
         }
 
         // Columnas
-        for (int i = 0; i < 3; i++) {
+        for (int columna = 0; columna < 3; columna++) {
 
-            if (celdas[0][i] != '-' &&
-                celdas[0][i] == celdas[1][i] &&
-                celdas[1][i] == celdas[2][i]) {
+            if (celdas[0][columna] != '-' &&
+                celdas[0][columna] == celdas[1][columna] &&
+                celdas[1][columna] == celdas[2][columna]) {
 
-                return celdas[0][i];
+                return new int[][]{
+                    {0, columna},
+                    {1, columna},
+                    {2, columna}
+                };
             }
         }
 
@@ -98,7 +118,11 @@ public class Tablero {
             celdas[0][0] == celdas[1][1] &&
             celdas[1][1] == celdas[2][2]) {
 
-            return celdas[0][0];
+            return new int[][]{
+                {0, 0},
+                {1, 1},
+                {2, 2}
+            };
         }
 
         // Diagonal secundaria
@@ -106,10 +130,14 @@ public class Tablero {
             celdas[0][2] == celdas[1][1] &&
             celdas[1][1] == celdas[2][0]) {
 
-            return celdas[0][2];
+            return new int[][]{
+                {0, 2},
+                {1, 1},
+                {2, 0}
+            };
         }
 
-        return '-';
+        return null;
     }
 
     // Comprobar si el tablero está lleno

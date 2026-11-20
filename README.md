@@ -62,11 +62,8 @@ ProyectoMiniMax/
 │       ├── InterfazJuego.java
 │       ├── PanelArbol.java
 │       ├── PantallaResultados.java
-│       ├── PruebaMinimax.java
-│       ├── PruebaTablero.java
-│       └── PruebaNodo.java
 │  
-│
+│       
 ├── .gitignore
 └── README.md
 ```

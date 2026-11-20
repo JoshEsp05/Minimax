@@ -4,13 +4,19 @@ package minimax;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.StrokeLineCap;
 import javafx.stage.Stage;
 import javafx.animation.PauseTransition;
 import javafx.util.Duration;
@@ -30,6 +36,9 @@ public class InterfazJuego {
 
     private Stage ventana;
     private Runnable volverInicio;
+
+    // Canvas para dibujar la línea ganadora
+    private Canvas lineaGanadora;
 
     // Estadísticas acumuladas
     private int jugadasJugador;
@@ -117,6 +126,27 @@ public class InterfazJuego {
             }
         }
 
+        // Canvas que se coloca encima del tablero
+        lineaGanadora = new Canvas();
+
+        lineaGanadora.widthProperty().bind(
+                cuadrícula.widthProperty()
+        );
+
+        lineaGanadora.heightProperty().bind(
+                cuadrícula.heightProperty()
+        );
+
+        lineaGanadora.setMouseTransparent(true);
+
+        // Superponer el Canvas sobre el tablero
+        StackPane tableroConLinea = new StackPane(
+                cuadrícula,
+                lineaGanadora
+        );
+
+        tableroConLinea.setAlignment(Pos.CENTER);
+
         // Estadísticas
         Label tituloEstadisticas = new Label("ESTADÍSTICAS");
 
@@ -182,9 +212,7 @@ public class InterfazJuego {
         panelEstadisticas.setPrefHeight(180);
         panelEstadisticas.setAlignment(Pos.CENTER_LEFT);
 
-
         panelEstadisticas.setPadding(new Insets(15));
-        panelEstadisticas.setAlignment(Pos.CENTER_LEFT);
 
         panelEstadisticas.setStyle(
                 "-fx-background-color: #293548;" +
@@ -197,7 +225,7 @@ public class InterfazJuego {
                 titulo,
                 subtitulo,
                 estado,
-                cuadrícula,
+                tableroConLinea,
                 panelEstadisticas
         );
 
@@ -316,46 +344,140 @@ public class InterfazJuego {
         }
     }
 
-        private boolean verificarFinPartida() {
+    private boolean verificarFinPartida() {
 
         char ganador = tablero.obtenerGanador();
 
         if (ganador == 'X') {
 
-                partidaTerminada = true;
+            partidaTerminada = true;
 
         } else if (ganador == 'O') {
 
-                partidaTerminada = true;
+            partidaTerminada = true;
 
         } else if (tablero.estaLleno()) {
 
-                partidaTerminada = true;
-                ganador = '-';
+            partidaTerminada = true;
+            ganador = '-';
         }
 
         if (partidaTerminada) {
 
-                actualizarTablero();
+            actualizarTablero();
 
-                // Esperar antes de mostrar los resultados
-                char resultadoFinal = ganador;
+            // Dibujar la línea si existe un ganador
+            if (ganador != '-') {
+                dibujarLineaGanadora();
+            }
 
-                PauseTransition pausa = new PauseTransition(
-                        Duration.seconds(.15)
-                );
+            // Esperar antes de mostrar los resultados
+            char resultadoFinal = ganador;
 
-                pausa.setOnFinished(e ->
-                        mostrarResultados(resultadoFinal)
-                );
+            PauseTransition pausa = new PauseTransition(
+                    Duration.seconds(.55)
+            );
 
-                pausa.play();
+            pausa.setOnFinished(e ->
+                    mostrarResultados(resultadoFinal)
+            );
 
-                return true;
+            pausa.play();
+
+            return true;
         }
 
         return false;
+    }
+
+    // Dibujar la línea sobre las tres casillas ganadoras
+    private void dibujarLineaGanadora() {
+
+        int[][] posiciones = tablero.obtenerLineaGanadora();
+
+        if (posiciones == null || lineaGanadora == null) {
+            return;
         }
+
+        Button primeraFicha = botones[
+                posiciones[0][0]
+        ][
+                posiciones[0][1]
+        ];
+
+        Button ultimaFicha = botones[
+                posiciones[2][0]
+        ][
+                posiciones[2][1]
+        ];
+
+        // Obtener el centro de la primera casilla
+        double inicioX =
+                primeraFicha.getBoundsInParent().getMinX() +
+                primeraFicha.getWidth() / 2;
+
+        double inicioY =
+                primeraFicha.getBoundsInParent().getMinY() +
+                primeraFicha.getHeight() / 2;
+
+        // Obtener el centro de la última casilla
+        double finX =
+                ultimaFicha.getBoundsInParent().getMinX() +
+                ultimaFicha.getWidth() / 2;
+
+        double finY =
+                ultimaFicha.getBoundsInParent().getMinY() +
+                ultimaFicha.getHeight() / 2;
+
+        GraphicsContext gc =
+                lineaGanadora.getGraphicsContext2D();
+
+        gc.clearRect(
+                0,
+                0,
+                lineaGanadora.getWidth(),
+                lineaGanadora.getHeight()
+        );
+
+        // Color y efecto de la línea
+        Color colorLinea = Color.web("#65F28B");
+
+        gc.setStroke(colorLinea);
+        gc.setLineWidth(8);
+        gc.setLineCap(StrokeLineCap.ROUND);
+
+        // Efecto de resplandor
+        gc.setEffect(
+                new DropShadow(14, colorLinea)
+        );
+
+        // Dibujar desde la primera hasta la última ficha
+        gc.strokeLine(
+                inicioX,
+                inicioY,
+                finX,
+                finY
+        );
+
+        gc.setEffect(null);
+    }
+
+    // Limpiar la línea del tablero
+    private void limpiarLineaGanadora() {
+
+        if (lineaGanadora != null) {
+
+            GraphicsContext gc =
+                    lineaGanadora.getGraphicsContext2D();
+
+            gc.clearRect(
+                    0,
+                    0,
+                    lineaGanadora.getWidth(),
+                    lineaGanadora.getHeight()
+            );
+        }
+    }
 
     private void mostrarResultados(char ganador) {
 
@@ -450,6 +572,8 @@ public class InterfazJuego {
         totalMovimientosOmitidos = 0;
 
         panelArbol.limpiar();
+
+        limpiarLineaGanadora();
 
         estado.setText("Tu turno: juega con X");
 
